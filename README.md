@@ -1,4 +1,4 @@
-[Logogistiks Camera Pull Request Added] (https://github.com/Logogistiks/StableDiffusion-CheatSheet)
+[Logogistiks Camera Pull Request Added](https://github.com/Logogistiks/StableDiffusion-CheatSheet)
 
 # Stable Diffusion Cheat-Sheet
 
