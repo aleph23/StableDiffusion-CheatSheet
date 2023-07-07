@@ -1,3 +1,5 @@
+[Logogistiks Camera Pull Request Added] (https://github.com/Logogistiks/StableDiffusion-CheatSheet)
+
 # Stable Diffusion Cheat-Sheet
 
 This began as a personal collection of styles and notes. I was curious to see how the artists used in the prompts looked without the other keywords.
