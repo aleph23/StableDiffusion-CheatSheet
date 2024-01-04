@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded',function(event){
 
     var SearchEngine = 'https://www.google.com/search?q=';
     
+    var lateststyles = 202310230000; // Stuff since last official release
     var EndOfLastVer120 = 202306072133; // Version 1.2.0
     var EndOfLastVer110 = 202305050000; // Version 1.1.0
 
@@ -163,12 +164,12 @@ document.addEventListener('DOMContentLoaded',function(event){
     },{});
     
     Object.keys(sortedKeys).forEach(key => {
-        if(sortedKeys[key]>2 && DontShowAnyCountries.includes(key)==false){
+        if(sortedKeys[key]>4 && DontShowAnyCountries.includes(key)==false){
             let filtername = key.replace(/\\/g,'');
             FilterOutput = FilterOutput + '<span data-srch="' + filtername + '">' + filtername + ' <span>' + sortedKeys[key] +'</span></span>';    
         };
     });
-    FilterOutput =  FilterOutput + '<span class="specialfilters" data-srch="New Styles 1.2.0">New with 1.2.0</span><span class="specialfilters" data-srch="New Styles 1.1.0">New with 1.1.0</span><span class="specialfilters" data-srch="Opened Styles">Currently Opened Styles</span><span class="specialfilters" data-srch="Liked">Liked <span><img class="svg" src="./src/heart-outline.svg" width="12"></span></span><span class="specialfilters" data-srch="&dagger;">Only Deceased Artists <span>&dagger;</span></span>';
+    FilterOutput =  FilterOutput + '<span class="specialfilters" data-srch="Newest Styles">Newest Styles</span><span class="specialfilters" data-srch="New Styles 1.2.0">New with 1.2.0</span><span class="specialfilters" data-srch="New Styles 1.1.0">New with 1.1.0</span><span class="specialfilters" data-srch="Opened Styles">Currently Opened Styles</span><span class="specialfilters" data-srch="Liked">Liked <span><img class="svg" src="./src/heart-outline.svg" width="12"></span></span><span class="specialfilters" data-srch="&dagger;">Only Deceased Artists <span>&dagger;</span></span>';
     catsbox.innerHTML = FilterOutput;
     
     // Copy Prompt to Clipboard
@@ -358,11 +359,12 @@ document.addEventListener('DOMContentLoaded',function(event){
         let search_query = document.getElementById('searchbox').value;
         let stylebegindate; let styleenddate;
         if(search_query == 'New Styles 1.1.0'){ stylebegindate = EndOfLastVer110; styleenddate = EndOfLastVer120; }
-        if(search_query == 'New Styles 1.2.0'){ stylebegindate = EndOfLastVer120; styleenddate = 999999999999; }
+        if(search_query == 'New Styles 1.2.0'){ stylebegindate = EndOfLastVer120; styleenddate = lateststyles; }
+        if(search_query == 'Newest Styles'){ stylebegindate = lateststyles; styleenddate = 999999999999; }
         
         for(var i = 0; i < pods.length; i++){
             
-            if((search_query == 'New Styles 1.1.0')||(search_query == 'New Styles 1.2.0')){
+            if((search_query == 'New Styles 1.1.0')||(search_query == 'New Styles 1.2.0')||(search_query == 'Newest Styles')){
                 let currentstyledate = pods[i].dataset.creatime;
                 if((currentstyledate>stylebegindate)&&(currentstyledate<styleenddate)){
                     pods[i].classList.remove('is-hidden');
@@ -625,7 +627,7 @@ document.addEventListener('DOMContentLoaded',function(event){
             let com = '';
 
             // Exif - JPG
-            if(tags && tags.UserComment) {
+            if(tags.UserComment) {
                 com = decodeUnicode(tags.UserComment.value);
                 extractPrompt(com);
                 return;
@@ -637,8 +639,15 @@ document.addEventListener('DOMContentLoaded',function(event){
                 return;
             }
             
+            // Comfy UI
+            if(tags.prompt) {
+                com = JSON.parse(tags.prompt.value);
+                extractComfyPrompt(com);
+                return;
+            }
+            
             // Non SD image but tags
-            if(tags && (tags.UserComment === undefined) && (tags.parameters === undefined)) {
+            if(tags && (tags.UserComment === undefined) && (tags.parameters === undefined) && (tags.prompt === undefined)) {
                 function printValues(obj) {
                     for(var k in obj) {
                         if(!(k=='value'||k=='Thumbnail'||k=='Special Instructions'||k=='Padding')){
@@ -673,6 +682,38 @@ document.addEventListener('DOMContentLoaded',function(event){
             })
             return decode;
         }
+
+
+        function extractComfyPrompt(com) {
+            
+            const noduplicates = [];
+            let MDOut = '<p><span><strong>UI</strong> ComfyUI</span>';
+            
+            const isObject = (val) => {
+                if(val === null) { return false; }
+                return typeof val === 'object';
+            };
+
+            const nestedObject = (obj) => {
+                
+                for (const key in obj) {
+                    if(isObject(obj[key])){
+                        nestedObject(obj[key]);
+                    } else {
+                       if((isNaN(key) == true) && !noduplicates.includes(key)){
+                           MDOut = MDOut + '<span><strong>' + key + '</strong> ' + obj[key] + '</span>';
+                           noduplicates.push(key);
+                       }
+                    }  
+                }
+                
+            };
+            nestedObject(com);
+
+            MDOut = MDOut + '</p>';
+            allMetaData.innerHTML = MDOut;
+        }
+
 
         function extractPrompt(com) {
 
